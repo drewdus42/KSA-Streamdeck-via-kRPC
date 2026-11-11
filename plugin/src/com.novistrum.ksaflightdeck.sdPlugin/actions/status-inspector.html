@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>kRPC Status</title>
+	<link rel="stylesheet" href="pi.css" />
+</head>
+
+<body>
+	<h1>kRPC connection</h1>
+	<p class="hint">
+		These settings are shared by every KSA Flight Deck key. The kRPC mod listens on
+		127.0.0.1 port 50000 by default.
+	</p>
+
+	<div class="field">
+		<label for="host">Address</label>
+		<input id="host" type="text" placeholder="127.0.0.1" spellcheck="false" />
+	</div>
+
+	<div class="field">
+		<label for="port">RPC port</label>
+		<input id="port" type="number" min="1" max="65535" step="1" placeholder="50000" />
+	</div>
+
+	<div class="field">
+		<label for="pollMs">Refresh interval (ms)</label>
+		<input id="pollMs" type="number" min="100" max="5000" step="50" placeholder="250" />
+	</div>
+
+	<button id="test">Test connection</button>
+	<div class="status" id="status">Not tested yet.</div>
+
+	<script src="pi.js"></script>
+	<script src="status-inspector.js"></script>
+</body>
+
+</html>

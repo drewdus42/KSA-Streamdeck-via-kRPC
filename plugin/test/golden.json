@@ -1,0 +1,256 @@
+{
+  "messages": [
+    {
+      "hex": "120f4b534120466c69676874204465636b2001",
+      "name": "connection_request",
+      "type": "ConnectionRequest"
+    },
+    {
+      "hex": "08011a10000102030405060708090a0b0c0d0e0f2001",
+      "name": "connection_request_stream",
+      "type": "ConnectionRequest"
+    },
+    {
+      "hex": "120861636365707465641a030102032001",
+      "name": "connection_response",
+      "type": "ConnectionResponse"
+    },
+    {
+      "hex": "0a1c0a034b5341120547657455541a0a1208000000000000f83f2003280b0a240a06466c69676874120f4765744d65616e416c7469747564651a0312012a1a0408011801",
+      "name": "request",
+      "type": "Request"
+    },
+    {
+      "hex": "120a1208000000000020454012200a1e0a034b5341120b4e6f537563685468696e671a04626f6f6d220461742078",
+      "name": "response",
+      "type": "Response"
+    },
+    {
+      "hex": "0a0a0803120612040000c03f",
+      "name": "stream_update",
+      "type": "StreamUpdate"
+    },
+    {
+      "hex": "0ace010a034b534112620a1047657441637469766556656869636c6512390a0f7265666572656e63655f6672616d6512220864120e5265666572656e63654672616d651a0e5265666572656e63654672616d65280130011a10086412034b53411a0756656869636c653201011a090a0756656869636c65222d0a0d4175746f50696c6f744d6f6465121c0a184155544f5f50494c4f545f4d4f44455f50524f475241444510014a290a1a5475706c655f646f75626c655f646f75626c655f646f75626c65120b0a056974656d3112020801",
+      "name": "services",
+      "type": "Services"
+    },
+    {
+      "hex": "0a08000000000000f03f0a080000000000000040",
+      "name": "tuple",
+      "type": "Tuple"
+    },
+    {
+      "hex": "0a110a05046675656c12080000000000002940",
+      "name": "dictionary",
+      "type": "Dictionary"
+    },
+    {
+      "hex": "0a05302e322e3010d20918ae2c305a4888275001a00101",
+      "name": "status",
+      "type": "Status"
+    }
+  ],
+  "values": [
+    {
+      "hex": "000000000000f83f",
+      "name": "double",
+      "type": {
+        "code": 1
+      },
+      "value": 1.5
+    },
+    {
+      "hex": "00003040",
+      "name": "float",
+      "type": {
+        "code": 2
+      },
+      "value": 2.75
+    },
+    {
+      "hex": "0d",
+      "name": "sint32",
+      "type": {
+        "code": 3
+      },
+      "value": -7
+    },
+    {
+      "hex": "eaf0e0fd5b",
+      "name": "sint64",
+      "type": {
+        "code": 4
+      },
+      "value": 12345678901
+    },
+    {
+      "hex": "ac02",
+      "name": "uint32",
+      "type": {
+        "code": 5
+      },
+      "value": 300
+    },
+    {
+      "hex": "cb89ec8ff723",
+      "name": "uint64",
+      "type": {
+        "code": 6
+      },
+      "value": 1234567890123
+    },
+    {
+      "hex": "01",
+      "name": "bool_true",
+      "type": {
+        "code": 7
+      },
+      "value": true
+    },
+    {
+      "hex": "00",
+      "name": "bool_false",
+      "type": {
+        "code": 7
+      },
+      "value": false
+    },
+    {
+      "hex": "0668c3a96c6c6f",
+      "name": "string",
+      "type": {
+        "code": 8
+      },
+      "value": "h\u00e9llo"
+    },
+    {
+      "hex": "00",
+      "name": "string_empty",
+      "type": {
+        "code": 8
+      },
+      "value": ""
+    },
+    {
+      "hex": "030001ff",
+      "name": "bytes",
+      "type": {
+        "code": 9
+      },
+      "value": "0001ff"
+    },
+    {
+      "hex": "2a",
+      "name": "class",
+      "type": {
+        "code": 100,
+        "name": "Vehicle",
+        "service": "KSA"
+      },
+      "value": 42
+    },
+    {
+      "hex": "06",
+      "name": "enumeration",
+      "type": {
+        "code": 101,
+        "name": "Situation",
+        "service": "KSA"
+      },
+      "value": 3
+    },
+    {
+      "hex": "0a08000000000000f03f0a0800000000000004c00a080000000000000840",
+      "name": "list",
+      "type": {
+        "code": 301,
+        "types": [
+          {
+            "code": 1
+          }
+        ]
+      },
+      "value": [
+        1.0,
+        -2.5,
+        3.0
+      ]
+    },
+    {
+      "hex": "",
+      "name": "list_empty",
+      "type": {
+        "code": 301,
+        "types": [
+          {
+            "code": 8
+          }
+        ]
+      },
+      "value": []
+    },
+    {
+      "hex": "0a0201610a080000000000000040",
+      "name": "tuple",
+      "type": {
+        "code": 300,
+        "types": [
+          {
+            "code": 8
+          },
+          {
+            "code": 1
+          }
+        ]
+      },
+      "value": [
+        "a",
+        2.0
+      ]
+    },
+    {
+      "hex": "0a110a05046675656c1208000000000000f03f0a150a09086f786964697a657212080000000000000040",
+      "name": "dictionary",
+      "type": {
+        "code": 303,
+        "types": [
+          {
+            "code": 8
+          },
+          {
+            "code": 1
+          }
+        ]
+      },
+      "value": [
+        [
+          "fuel",
+          1.0
+        ],
+        [
+          "oxidizer",
+          2.0
+        ]
+      ]
+    },
+    {
+      "hex": "0a0901000000000000f03f0a01000a09010000000000000840",
+      "name": "nullable_list",
+      "type": {
+        "code": 301,
+        "types": [
+          {
+            "code": 1,
+            "nullable": true
+          }
+        ]
+      },
+      "value": [
+        1.0,
+        null,
+        3.0
+      ]
+    }
+  ]
+}

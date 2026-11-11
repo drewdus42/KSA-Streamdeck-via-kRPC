@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>Telemetry Readout</title>
+	<link rel="stylesheet" href="pi.css" />
+</head>
+
+<body>
+	<h1>Telemetry readout</h1>
+	<p class="hint">Pick the value this key shows. It updates four times a second while the key is visible.</p>
+
+	<div class="field">
+		<label for="metric">Readout</label>
+		<select id="metric">
+			<optgroup label="Flight">
+				<option data-metric="altitude">Altitude</option>
+				<option data-metric="surfaceAltitude">Altitude above ground</option>
+				<option data-metric="speed">Speed</option>
+				<option data-metric="verticalSpeed">Vertical speed</option>
+				<option data-metric="horizontalSpeed">Horizontal speed</option>
+				<option data-metric="pitch">Pitch</option>
+				<option data-metric="heading">Heading</option>
+				<option data-metric="roll">Roll</option>
+				<option data-metric="gForce">G-force</option>
+				<option data-metric="angleOfAttack">Angle of attack</option>
+				<option data-metric="dynamicPressure">Dynamic pressure</option>
+				<option data-metric="biome">Biome</option>
+			</optgroup>
+			<optgroup label="Orbit">
+				<option data-metric="apoapsis">Apoapsis altitude</option>
+				<option data-metric="periapsis">Periapsis altitude</option>
+				<option data-metric="inclination">Inclination</option>
+				<option data-metric="timeToApoapsis">Time to apoapsis</option>
+				<option data-metric="timeToPeriapsis">Time to periapsis</option>
+				<option data-metric="period">Orbital period</option>
+				<option data-metric="eccentricity">Eccentricity</option>
+			</optgroup>
+			<optgroup label="Vehicle">
+				<option data-metric="mass">Mass</option>
+				<option data-metric="propellant">Propellant mass</option>
+				<option data-metric="thrust">Thrust</option>
+				<option data-metric="availableThrust">Available thrust</option>
+				<option data-metric="storedEnergy">Stored energy</option>
+				<option data-metric="netPower">Net power</option>
+				<option data-metric="situation">Situation</option>
+			</optgroup>
+			<optgroup label="Control">
+				<option data-metric="throttle">Throttle</option>
+				<option data-metric="engineOn">Engine</option>
+				<option data-metric="rcs">RCS</option>
+				<option data-metric="lights">Lights</option>
+				<option data-metric="stabilization">Stabilization</option>
+				<option data-metric="pulse">Pulse</option>
+			</optgroup>
+			<optgroup label="Sequence">
+				<option data-metric="sequenceNumber">Sequence</option>
+				<option data-metric="sequenceDeltaV">Sequence delta-v</option>
+			</optgroup>
+			<optgroup label="Auto-pilot">
+				<option data-metric="autoPilotEngaged">Auto-pilot engaged</option>
+				<option data-metric="autoPilotMode">Auto-pilot mode</option>
+			</optgroup>
+			<optgroup label="Game">
+				<option data-metric="ut">Universal time</option>
+				<option data-metric="simSpeed">Simulation speed</option>
+			</optgroup>
+		</select>
+	</div>
+
+	<div class="status" id="status">Press the key at any time to refresh it.</div>
+
+	<script src="pi.js"></script>
+	<script src="readout-inspector.js"></script>
+</body>
+
+</html>

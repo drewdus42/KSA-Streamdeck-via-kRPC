@@ -1,0 +1,119 @@
+{
+	"SDKVersion": 2,
+	"UUID": "com.novistrum.ksaflightdeck",
+	"Author": "Novistrum",
+	"Name": "KSA Flight Deck",
+	"Description": "Control Kitten Space Agency from a Stream Deck through the kRPC mod.",
+	"Version": "1.0.0.0",
+	"CodePath": "bin/plugin.js",
+	"Nodejs": {
+		"Version": "20"
+	},
+	"Icon": "imgs/plugin",
+	"URL": "https://krpc.github.io/krpc/experimental/ksa/",
+	"Software": {
+		"MinimumVersion": "6.9"
+	},
+	"OS": [
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		},
+		{
+			"Platform": "mac",
+			"MinimumVersion": "10.15"
+		}
+	],
+	"Category": "KSA Flight Deck",
+	"CategoryIcon": "imgs/plugin",
+	"Actions": [
+		{
+			"UUID": "com.novistrum.ksaflightdeck.status",
+			"Icon": "imgs/status",
+			"Name": "kRPC Status",
+			"Tooltip": "Shows the link to the kRPC server and the vehicle under control",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/status-key" }],
+			"PropertyInspectorPath": "actions/status-inspector.html"
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.readout",
+			"Icon": "imgs/readout",
+			"Name": "Telemetry Readout",
+			"Tooltip": "Show a live readout such as altitude, apoapsis or propellant",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/readout-key" }],
+			"PropertyInspectorPath": "actions/readout-inspector.html"
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.sequence",
+			"Icon": "imgs/sequence",
+			"Name": "Next Sequence",
+			"Tooltip": "Activate the next sequence and show which one is active",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/sequence-key" }]
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.engine",
+			"Icon": "imgs/engine",
+			"Name": "Engine",
+			"Tooltip": "Switch the engines on or off and show their state",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/engine-key" }]
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.autopilot",
+			"Icon": "imgs/autopilot",
+			"Name": "Auto-Pilot Mode",
+			"Tooltip": "Engage the auto-pilot in a chosen mode; press again to let go",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/autopilot-key" }],
+			"PropertyInspectorPath": "actions/autopilot-inspector.html"
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.toggle",
+			"Icon": "imgs/toggle",
+			"Name": "Control Toggle",
+			"Tooltip": "Toggle RCS, lights, stabilization or pulsed thrust",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/toggle-key" }],
+			"PropertyInspectorPath": "actions/toggle-inspector.html"
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.throttle",
+			"Icon": "imgs/throttle",
+			"Name": "Throttle",
+			"Tooltip": "Turn the throttle up or down",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/throttle.json",
+				"StackColor": "#0ea5e9",
+				"TriggerDescription": {
+					"Rotate": "Turn: 1% per tick\nHold and turn: 5% per tick",
+					"Push": "Throttle to 0%",
+					"Touch": "Throttle to 100%"
+				}
+			},
+			"States": [{ "Image": "imgs/throttle-key" }],
+			"PropertyInspectorPath": "actions/throttle-inspector.html"
+		},
+		{
+			"UUID": "com.novistrum.ksaflightdeck.warp",
+			"Icon": "imgs/warp",
+			"Name": "Time Warp",
+			"Tooltip": "Step the simulation speed up or down, and pause",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/warp.json",
+				"StackColor": "#a855f7",
+				"TriggerDescription": {
+					"Rotate": "Change the simulation speed",
+					"Push": "Pause or resume",
+					"Touch": "Back to 1x"
+				}
+			},
+			"States": [{ "Image": "imgs/warp-key" }],
+			"PropertyInspectorPath": "actions/warp-inspector.html"
+		}
+	]
+}

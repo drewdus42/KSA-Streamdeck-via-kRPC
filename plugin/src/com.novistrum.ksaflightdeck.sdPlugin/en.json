@@ -1,0 +1,58 @@
+{
+	"Description": "Control Kitten Space Agency with your Stream Deck (requires the kRPC mod for KSA).",
+	"Name": "KSA Flight Deck",
+	"Category": "KSA Flight Deck",
+	"com.novistrum.ksaflightdeck.status": {
+		"Name": "kRPC Status",
+		"Tooltip": "Shows the link to the kRPC server and the vehicle under control"
+	},
+	"com.novistrum.ksaflightdeck.readout": {
+		"Name": "Telemetry Readout",
+		"Tooltip": "Show a live readout such as altitude, apoapsis or propellant"
+	},
+	"com.novistrum.ksaflightdeck.sequence": {
+		"Name": "Next Sequence",
+		"Tooltip": "Activate the next sequence and show which one is active"
+	},
+	"com.novistrum.ksaflightdeck.engine": {
+		"Name": "Engine",
+		"Tooltip": "Switch the engines on or off and show their state"
+	},
+	"com.novistrum.ksaflightdeck.autopilot": {
+		"Name": "Auto-Pilot Mode",
+		"Tooltip": "Engage the auto-pilot in a chosen mode; press again to let go"
+	},
+	"com.novistrum.ksaflightdeck.toggle": {
+		"Name": "Control Toggle",
+		"Tooltip": "Toggle RCS, lights, stabilization or pulsed thrust"
+	},
+	"com.novistrum.ksaflightdeck.throttle": {
+		"Name": "Throttle",
+		"Tooltip": "Turn the throttle up or down"
+	},
+	"com.novistrum.ksaflightdeck.warp": {
+		"Name": "Time Warp",
+		"Tooltip": "Step the simulation speed up or down, and pause"
+	},
+	"Localization": {
+		"kRPC Status": "kRPC Status",
+		"Telemetry Readout": "Telemetry Readout",
+		"Next Sequence": "Next Sequence",
+		"Engine": "Engine",
+		"Auto-Pilot Mode": "Auto-Pilot Mode",
+		"Control Toggle": "Control Toggle",
+		"Throttle": "Throttle",
+		"Time Warp": "Time Warp",
+		"Telemetry readout": "Telemetry readout",
+		"Readout": "Readout",
+		"Auto-pilot mode": "Auto-pilot mode",
+		"Mode": "Mode",
+		"Control toggle": "Control toggle",
+		"Control": "Control",
+		"kRPC connection": "kRPC connection",
+		"Address": "Address",
+		"RPC port": "RPC port",
+		"Refresh interval (ms)": "Refresh interval (ms)",
+		"Test connection": "Test connection"
+	}
+}

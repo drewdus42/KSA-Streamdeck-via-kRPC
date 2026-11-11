@@ -1,0 +1,21 @@
+{
+	"id": "throttle",
+	"items": [
+		{
+			"key": "title",
+			"type": "text",
+			"rect": [0, 4, 200, 26],
+			"font": { "size": 15, "weight": 600 },
+			"alignment": "center",
+			"color": "#38bdf8"
+		},
+		{
+			"key": "value",
+			"type": "text",
+			"rect": [0, 32, 200, 60],
+			"font": { "size": 34, "weight": 700 },
+			"alignment": "center",
+			"color": "#f8fafc"
+		}
+	]
+}

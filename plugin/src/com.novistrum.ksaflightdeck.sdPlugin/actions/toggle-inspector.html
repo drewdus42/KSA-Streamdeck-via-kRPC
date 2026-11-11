@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>Control Toggle</title>
+	<link rel="stylesheet" href="pi.css" />
+</head>
+
+<body>
+	<h1>Control toggle</h1>
+	<p class="hint">Each press flips the chosen control and the key shows its state.</p>
+
+	<div class="field">
+		<label for="toggle">Control</label>
+		<select id="toggle">
+			<option data-toggle="rcs">RCS</option>
+			<option data-toggle="lights">Lights</option>
+			<option data-toggle="stabilization">Stabilization</option>
+			<option data-toggle="pulse">Pulsed thrust</option>
+		</select>
+	</div>
+
+	<div class="status" id="status">The key lights up while the control is on.</div>
+
+	<script src="pi.js"></script>
+	<script src="toggle-inspector.js"></script>
+</body>
+
+</html>

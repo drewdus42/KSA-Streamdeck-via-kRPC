@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>Auto-Pilot Mode</title>
+	<link rel="stylesheet" href="pi.css" />
+</head>
+
+<body>
+	<h1>Auto-pilot mode</h1>
+	<p class="hint">
+		Pressing the key engages the auto-pilot in this mode. Pressing it again while it
+		holds this mode lets go.
+	</p>
+
+	<div class="field">
+		<label for="mode">Mode</label>
+		<select id="mode">
+			<option data-mode="AUTO_PILOT_MODE_PROGRADE">Prograde</option>
+			<option data-mode="AUTO_PILOT_MODE_RETROGRADE">Retrograde</option>
+			<option data-mode="AUTO_PILOT_MODE_NORMAL">Normal</option>
+			<option data-mode="AUTO_PILOT_MODE_ANTI_NORMAL">Anti-normal</option>
+			<option data-mode="AUTO_PILOT_MODE_RADIAL_IN">Radial in</option>
+			<option data-mode="AUTO_PILOT_MODE_RADIAL_OUT">Radial out</option>
+			<option data-mode="AUTO_PILOT_MODE_SURFACE_PROGRADE">Surface prograde</option>
+			<option data-mode="AUTO_PILOT_MODE_SURFACE_RETROGRADE">Surface retrograde</option>
+			<option data-mode="AUTO_PILOT_MODE_HOLD">Hold current attitude</option>
+			<option data-mode="AUTO_PILOT_MODE_ATTITUDE">Current attitude</option>
+		</select>
+	</div>
+
+	<div class="status" id="status">The key shows HOLD when the auto-pilot is holding this mode.</div>
+
+	<script src="pi.js"></script>
+	<script src="autopilot-inspector.js"></script>
+</body>
+
+</html>
