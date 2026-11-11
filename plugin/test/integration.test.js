@@ -28,7 +28,7 @@ const ACTION = {
 };
 
 async function startSession() {
-	const krpc = createFakeServer();
+	const krpc = createFakeServer({ ksaService: true });
 	const krpcPort = await krpc.listen(0);
 	const deck = createFakeStreamDeck();
 	const port = await deck.listen();
@@ -51,6 +51,9 @@ async function startSession() {
 
 	await deck.waitFor(function (message) {
 		return message.event === "registerPlugin" && message.uuid === UUID;
+	}, 5000);
+	await deck.waitFor(function (message) {
+		return message.event === "getGlobalSettings" && message.context === UUID;
 	}, 5000);
 
 	deck.send("didReceiveGlobalSettings", {
@@ -87,10 +90,26 @@ function decoded(image) {
 	return decodeURIComponent(image.slice(image.indexOf(",") + 1));
 }
 
+test("the connection test replies to the correct action and context", async function () {
+	const session = await startSession();
+	try {
+		session.deck.send("sendToPlugin", { command: "test" }, "ctx-status", ACTION.status);
+		const reply = await session.deck.waitFor(function (message) {
+			return message.event === "sendToPropertyInspector" && message.payload.command === "test";
+		}, 6000);
+		assert.strictEqual(reply.context, "ctx-status");
+		assert.strictEqual(reply.action, ACTION.status);
+		assert.strictEqual(reply.payload.ok, true);
+		assert.match(reply.payload.message, /Connected to 127\.0\.0\.1:/);
+	} finally {
+		await session.stop();
+	}
+});
+
 test("the plugin registers, draws a status key and follows the vehicle", async function () {
 	const session = await startSession();
 	try {
-		session.deck.send("willAppear", { action: ACTION.status, settings: {} }, "ctx-status");
+		session.deck.send("willAppear", { settings: {} }, "ctx-status", ACTION.status);
 		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-status");
 
 		const image = await session.deck.waitFor(function (message) {
@@ -114,7 +133,7 @@ test("the plugin registers, draws a status key and follows the vehicle", async f
 test("a readout key shows the value the game reports", async function () {
 	const session = await startSession();
 	try {
-		session.deck.send("willAppear", { action: ACTION.readout, settings: { metric: "altitude" } }, "ctx-alt");
+		session.deck.send("willAppear", { settings: { metric: "altitude" } }, "ctx-alt", ACTION.readout);
 		session.deck.send("didReceiveSettings", { settings: { metric: "altitude" } }, "ctx-alt");
 
 		const image = await session.deck.waitFor(function (message) {
@@ -135,7 +154,7 @@ test("a readout key shows the value the game reports", async function () {
 test("a key press reaches the game", async function () {
 	const session = await startSession();
 	try {
-		session.deck.send("willAppear", { action: ACTION.sequence, settings: {} }, "ctx-seq");
+		session.deck.send("willAppear", { settings: {} }, "ctx-seq", ACTION.sequence);
 		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-seq");
 		await session.deck.waitFor(function (message) {
 			return message.event === "setImage" && message.context === "ctx-seq";
@@ -163,7 +182,7 @@ test("a key press reaches the game", async function () {
 test("the engine key toggles the engine and shows its state", async function () {
 	const session = await startSession();
 	try {
-		session.deck.send("willAppear", { action: ACTION.engine, settings: {} }, "ctx-engine");
+		session.deck.send("willAppear", { settings: {} }, "ctx-engine", ACTION.engine);
 		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-engine");
 		await session.deck.waitFor(function (message) {
 			return (
@@ -187,11 +206,30 @@ test("the engine key toggles the engine and shows its state", async function () 
 	}
 });
 
+test("auto-pilot selects the real KSA enum name and shows HOLD", async function () {
+	const session = await startSession();
+	try {
+		session.deck.send("willAppear", { settings: { mode: "AUTO_PILOT_MODE_PROGRADE" } }, "ctx-auto", ACTION.autopilot);
+		await session.deck.waitFor(function (message) {
+			return message.event === "setImage" && message.context === "ctx-auto" &&
+				decoded(message.payload.image).includes(">OFF<");
+		}, 6000);
+		session.deck.send("keyDown", { settings: {} }, "ctx-auto");
+		await session.deck.waitFor(function (message) {
+			return message.event === "setImage" && message.context === "ctx-auto" &&
+				decoded(message.payload.image).includes(">HOLD<");
+		}, 6000);
+		assert.strictEqual(session.krpc.state.vehicle.autopilot.mode, 2);
+	} finally {
+		await session.stop();
+	}
+});
+
 test("a dial press drives the throttle to zero and the touchscreen follows", async function () {
 	const session = await startSession();
 	try {
 		session.krpc.state.vehicle.throttle = 0.7;
-		session.deck.send("willAppear", { action: UUID + ".throttle", settings: {} }, "ctx-throttle");
+		session.deck.send("willAppear", { settings: {} }, "ctx-throttle", UUID + ".throttle");
 		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-throttle");
 
 		await session.deck.waitFor(function (message) {
@@ -219,7 +257,7 @@ test("a dial press drives the throttle to zero and the touchscreen follows", asy
 test("a key press while the game is away shows a warning, not a crash", async function () {
 	const session = await startSession();
 	try {
-		session.deck.send("willAppear", { action: ACTION.engine, settings: {} }, "ctx-engine");
+		session.deck.send("willAppear", { settings: {} }, "ctx-engine", ACTION.engine);
 		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-engine");
 		await session.deck.waitFor(function (message) {
 			return message.event === "setImage" && message.context === "ctx-engine";

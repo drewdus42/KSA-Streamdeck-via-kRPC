@@ -70,7 +70,7 @@ const METRICS = [
 	metric("lights", "Control", "Lights", { member: "Lights", target: "control", format: "boolean" }),
 	metric("stabilization", "Control", "Stabilization", { member: "Stabilization", target: "control", format: "boolean" }),
 	metric("pulse", "Control", "Pulse", { member: "Pulse", target: "control", format: "boolean" }),
-	metric("sequenceNumber", "Sequence", "Sequence", { service: "Sequence", member: "Number", target: "sequence", format: "plain" }),
+	metric("sequenceNumber", "Sequence", "Sequence", { service: "Control", member: "ActiveSequence", target: "control", format: "plain" }),
 	metric("sequenceDeltaV", "Sequence", "Stage delta-v", { service: "Sequence", member: "DeltaV", target: "sequence", format: "speed" }),
 
 	// Auto-pilot
@@ -96,16 +96,16 @@ const TOGGLES = {
 };
 
 const AUTO_PILOT_MODES = [
-	{ name: "AUTO_PILOT_MODE_HOLD", label: "HOLD" },
-	{ name: "AUTO_PILOT_MODE_ATTITUDE", label: "ATTITUDE" },
-	{ name: "AUTO_PILOT_MODE_PROGRADE", label: "PROGRADE" },
-	{ name: "AUTO_PILOT_MODE_RETROGRADE", label: "RETROGRADE" },
-	{ name: "AUTO_PILOT_MODE_NORMAL", label: "NORMAL" },
-	{ name: "AUTO_PILOT_MODE_ANTI_NORMAL", label: "ANTI-NORMAL" },
-	{ name: "AUTO_PILOT_MODE_RADIAL_IN", label: "RADIAL IN" },
-	{ name: "AUTO_PILOT_MODE_RADIAL_OUT", label: "RADIAL OUT" },
-	{ name: "AUTO_PILOT_MODE_SURFACE_PROGRADE", label: "SURFACE PROGRADE" },
-	{ name: "AUTO_PILOT_MODE_SURFACE_RETROGRADE", label: "SURFACE RETROGRADE" }
+	{ name: "AUTO_PILOT_MODE_HOLD", rpcName: "Hold", label: "HOLD" },
+	{ name: "AUTO_PILOT_MODE_ATTITUDE", rpcName: "Attitude", label: "ATTITUDE" },
+	{ name: "AUTO_PILOT_MODE_PROGRADE", rpcName: "Prograde", label: "PROGRADE" },
+	{ name: "AUTO_PILOT_MODE_RETROGRADE", rpcName: "Retrograde", label: "RETROGRADE" },
+	{ name: "AUTO_PILOT_MODE_NORMAL", rpcName: "Normal", label: "NORMAL" },
+	{ name: "AUTO_PILOT_MODE_ANTI_NORMAL", rpcName: "AntiNormal", label: "ANTI-NORMAL" },
+	{ name: "AUTO_PILOT_MODE_RADIAL_IN", rpcName: "RadialIn", label: "RADIAL IN" },
+	{ name: "AUTO_PILOT_MODE_RADIAL_OUT", rpcName: "RadialOut", label: "RADIAL OUT" },
+	{ name: "AUTO_PILOT_MODE_SURFACE_PROGRADE", rpcName: "SurfacePrograde", label: "SURFACE PROGRADE" },
+	{ name: "AUTO_PILOT_MODE_SURFACE_RETROGRADE", rpcName: "SurfaceRetrograde", label: "SURFACE RETROGRADE" }
 ];
 
 /** The warp factors the time warp dial steps through. */
@@ -141,7 +141,7 @@ function createSession(client, options) {
 		const registry = client.registry();
 		let labels = null;
 		if (registry) {
-			const owner = registry.services.get(service);
+			const owner = client.serviceFor(service);
 			const definition = owner && owner.procedures.get(procedure);
 			const type = definition && definition.returnType;
 			if (type && registry.enumerations.has(type.service + "." + type.name)) {
@@ -186,13 +186,28 @@ function createSession(client, options) {
 		if (objects.sequence) {
 			return objects.sequence;
 		}
-		const sequence = await client.call(
+		const active = await client.call(
 			"Control",
 			client.memberProcedure("Control", "get", "ActiveSequence"),
 			[objects.control]
 		);
-		objects.sequence = sequence;
-		return sequence;
+		const sequences = await client.call(
+			"Vehicle",
+			client.memberProcedure("Vehicle", "get", "Sequences"),
+			[objects.vehicle]
+		);
+		const numbers = await client.callBatch(sequences.map(function (sequence) {
+			return {
+				service: "Sequence",
+				procedure: client.memberProcedure("Sequence", "get", "Number"),
+				args: [sequence]
+			};
+		}));
+		const index = numbers.findIndex(function (result) {
+			return result.ok && result.value === active;
+		});
+		objects.sequence = index < 0 ? null : sequences[index];
+		return objects.sequence;
 	}
 
 	async function ensureConnected() {
@@ -330,7 +345,7 @@ function createSession(client, options) {
 			objects = null;
 			vehicleId = null;
 			snapshot = {
-				connected: Boolean(cause && cause.code !== "offline"),
+				connected: client.isConnected(),
 				ok: false,
 				vehicle: null,
 				error: cause && cause.code ? cause.code : "error",
@@ -354,16 +369,18 @@ function createSession(client, options) {
 		}
 		const value = result.value;
 		let formatted;
+		let enumName = null;
 		if (spec.format === "enum") {
 			const labels = enumLabels(spec.service, client.memberProcedure(spec.service, spec.kind, spec.member));
 			const label = labels && labels.has(value) ? labels.get(value) : null;
+			enumName = label;
 			formatted = label
 				? { value: format.enumLabel(label), unit: "", text: format.enumLabel(label) }
 				: format.decimal(value);
 		} else {
 			formatted = format.format(spec.format, value);
 		}
-		return { ok: true, value: value, formatted: formatted };
+		return { ok: true, value: value, formatted: formatted, enumName: enumName };
 	}
 
 	// ---------------------------------------------------------------- commands
@@ -468,10 +485,14 @@ function createSession(client, options) {
 
 	async function engageAutoPilot(mode) {
 		const target = await ensureVehicle();
-		if (typeof mode === "string" && mode.length > 0) {
+		if (mode !== null && mode !== undefined) {
+			const modeNumber = typeof mode === "string" ? await modeValue(mode) : mode;
+			if (modeNumber === null) {
+				throw new Error("Auto-pilot mode is not available: " + mode);
+			}
 			await client.call("AutoPilot", client.memberProcedure("AutoPilot", "set", "Mode"), [
 				target.autopilot,
-				mode
+				modeNumber
 			]);
 		}
 		await client.call("AutoPilot", client.memberProcedure("AutoPilot", "call", "Engage"), [
@@ -494,11 +515,14 @@ function createSession(client, options) {
 		const target = await ensureVehicle();
 		const state = await autoPilotState();
 		const modeNumber = await modeValue(mode);
-		if (state.engaged && (modeNumber === null || state.mode === modeNumber)) {
+		if (modeNumber === null) {
+			throw new Error("Auto-pilot mode is not available: " + mode);
+		}
+		if (state.engaged && state.mode === modeNumber) {
 			await disengageAutoPilot();
 			return { engaged: false, mode: state.mode };
 		}
-		await engageAutoPilot(mode);
+		await engageAutoPilot(modeNumber);
 		return { engaged: true, mode: modeNumber };
 	}
 
@@ -508,8 +532,11 @@ function createSession(client, options) {
 		if (!labels) {
 			return null;
 		}
+		const selected = AUTO_PILOT_MODES.find(function (entry) {
+			return entry.name === mode;
+		});
 		for (const entry of labels.entries()) {
-			if (entry[1] === mode) {
+			if (entry[1] === mode || (selected && entry[1] === selected.rpcName)) {
 				return entry[0];
 			}
 		}

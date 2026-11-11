@@ -329,7 +329,13 @@ function createClient(options) {
 			{ service: "KRPC", procedure: "GetServices", arguments: [] }
 		]);
 		const first = services.results[0];
-		if (!first || first.error) {
+		const serverError = services.error || (first && first.error);
+		if (serverError) {
+			const error = new RpcError(serverError, "The server could not describe its services");
+			teardown("protocol", error);
+			throw error;
+		}
+		if (!first) {
 			teardown("protocol", new KrpcError("The server did not describe its services"));
 			throw new KrpcError("The server did not describe its services");
 		}
@@ -370,11 +376,23 @@ function createClient(options) {
 		});
 	}
 
+	function serviceFor(serviceName) {
+		if (!registry) {
+			return null;
+		}
+		const direct = registry.services.get(serviceName);
+		if (direct) {
+			return direct;
+		}
+		const ksa = registry.services.get("KSA");
+		return ksa && ksa.classes.has(serviceName) ? ksa : null;
+	}
+
 	function procedureFor(serviceName, procedureName) {
 		if (!registry) {
 			throw offlineError("Not connected to the kRPC server");
 		}
-		const service = registry.services.get(serviceName);
+		const service = serviceFor(serviceName);
 		if (!service) {
 			throw new RpcError(
 				{ service: serviceName, name: "NoSuchService", description: "The server has no service " + serviceName },
@@ -433,7 +451,7 @@ function createClient(options) {
 			callArguments.push({ position: position, value: codec.encode(parameter.type, value) });
 		}
 		return {
-			service: serviceName,
+			service: serviceFor(serviceName).name,
 			procedure: procedureName,
 			arguments: callArguments,
 			returnType: procedure.returnType
@@ -556,11 +574,12 @@ function createClient(options) {
 		registry: function () {
 			return registry;
 		},
+		serviceFor: serviceFor,
 		hasProcedure: function (serviceName, procedureName) {
 			if (!registry) {
 				return false;
 			}
-			const service = registry.services.get(serviceName);
+			const service = serviceFor(serviceName);
 			return Boolean(service && service.procedures.has(procedureName));
 		},
 		/**
@@ -572,7 +591,7 @@ function createClient(options) {
 			if (!registry) {
 				return null;
 			}
-			const service = registry.services.get(serviceName);
+			const service = serviceFor(serviceName);
 			if (!service) {
 				return null;
 			}
@@ -609,14 +628,14 @@ function createClient(options) {
 			if (!registry) {
 				return [];
 			}
-			const service = registry.services.get(serviceName);
+			const service = serviceFor(serviceName);
 			return service ? Array.from(service.procedures.keys()) : [];
 		},
 		enumerations: function (serviceName) {
 			if (!registry) {
 				return [];
 			}
-			const service = registry.services.get(serviceName);
+			const service = serviceFor(serviceName);
 			return service ? Array.from(service.enumerations.values()) : [];
 		},
 		call: call,

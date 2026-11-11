@@ -39,16 +39,16 @@ const ORBIT = klass("Orbit", "Orbit");
 const SEQUENCE = klass("Sequence", "Sequence");
 
 const AUTOPILOT_MODES = [
-	"AUTO_PILOT_MODE_HOLD",
-	"AUTO_PILOT_MODE_ATTITUDE",
-	"AUTO_PILOT_MODE_PROGRADE",
-	"AUTO_PILOT_MODE_RETROGRADE",
-	"AUTO_PILOT_MODE_NORMAL",
-	"AUTO_PILOT_MODE_ANTI_NORMAL",
-	"AUTO_PILOT_MODE_RADIAL_IN",
-	"AUTO_PILOT_MODE_RADIAL_OUT",
-	"AUTO_PILOT_MODE_SURFACE_PROGRADE",
-	"AUTO_PILOT_MODE_SURFACE_RETROGRADE"
+	"Attitude",
+	"Hold",
+	"Prograde",
+	"Retrograde",
+	"Normal",
+	"AntiNormal",
+	"RadialOut",
+	"RadialIn",
+	"SurfacePrograde",
+	"SurfaceRetrograde"
 ];
 
 const SITUATIONS = [
@@ -152,7 +152,8 @@ function buildApi() {
 				{ name: "GetFlight", parameters: [THIS_VEHICLE], return_type: FLIGHT, impl: function () { return {}; } },
 				{ name: "GetControl", parameters: [THIS_VEHICLE], return_type: CONTROL, impl: function () { return {}; } },
 				{ name: "GetAutoPilot", parameters: [THIS_VEHICLE], return_type: AUTOPILOT, impl: function () { return {}; } },
-				{ name: "GetOrbit", parameters: [THIS_VEHICLE], return_type: ORBIT, impl: function () { return {}; } }
+				{ name: "GetOrbit", parameters: [THIS_VEHICLE], return_type: ORBIT, impl: function () { return {}; } },
+				{ name: "GetSequences", parameters: [THIS_VEHICLE], return_type: { code: T.LIST, types: [SEQUENCE] }, impl: function () { return [1]; } }
 			]
 		},
 		{
@@ -319,8 +320,8 @@ function buildApi() {
 				{
 					name: "GetActiveSequence",
 					parameters: [THIS_CONTROL],
-					return_type: SEQUENCE,
-					impl: function (vehicle) { return vehicle.sequence; }
+					return_type: SINT32,
+					impl: function (vehicle) { return vehicle.sequence.number; }
 				},
 				{
 					name: "ActivateNextSequence",
@@ -452,6 +453,43 @@ function normalizeApi(rawServices) {
 	});
 }
 
+function ksaServiceApi(services) {
+	function actualType(type) {
+		if (!type) {
+			return type;
+		}
+		const result = Object.assign({}, type);
+		if (CLASS_SERVICES.has(result.service)) {
+			result.service = "KSA";
+		}
+		if (result.types) {
+			result.types = result.types.map(actualType);
+		}
+		return result;
+	}
+
+	const ksa = { name: "KSA", procedures: [], classes: [], enumerations: [], structs: [] };
+	const other = [];
+	services.forEach(function (service) {
+		if (service.name !== "KSA" && !CLASS_SERVICES.has(service.name)) {
+			other.push(service);
+			return;
+		}
+		ksa.classes.push(...(service.classes || []));
+		ksa.enumerations.push(...(service.enumerations || []));
+		ksa.structs.push(...(service.structs || []));
+		(service.procedures || []).forEach(function (procedure) {
+			ksa.procedures.push(Object.assign({}, procedure, {
+				parameters: procedure.parameters.map(function (parameter) {
+					return Object.assign({}, parameter, { type: actualType(parameter.type) });
+				}),
+				return_type: actualType(procedure.return_type)
+			}));
+		});
+	});
+	return other.concat(ksa);
+}
+
 function implGetStatus(state) {
 	return {
 		version: "kRPC 0.2.0 (fake)",
@@ -548,7 +586,8 @@ function tick(state, elapsedSeconds) {
 function createFakeServer(options) {
 	const settings = options || {};
 	const state = createState(settings);
-	const api = normalizeApi(buildApi());
+	const normalized = normalizeApi(buildApi());
+	const api = settings.ksaService ? ksaServiceApi(normalized) : normalized;
 	const apiByName = new Map();
 	const proceduresByService = new Map();
 
@@ -704,6 +743,9 @@ function createFakeServer(options) {
 					results = calls.map(function (call) {
 						state.rpcsExecuted++;
 						if (call.service === "KRPC" && call.procedure === "GetServices") {
+							if (settings.servicesError) {
+								return { error: settings.servicesError };
+							}
 							return { value: codec.encode({ code: T.SERVICES }, servicesMessage()) };
 						}
 						return execute(call.service, call.procedure, call.arguments);

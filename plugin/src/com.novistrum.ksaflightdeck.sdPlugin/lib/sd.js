@@ -29,6 +29,7 @@ function createConnection() {
 	const socket = ws.createClient();
 	const handlers = new Map();
 	let registered = false;
+	let pluginUUID = "";
 
 	function on(eventName, handler) {
 		if (!handlers.has(eventName)) {
@@ -82,7 +83,7 @@ function createConnection() {
 		console.error("KSA Flight Deck: Stream Deck socket error", cause && cause.message);
 	});
 
-	function send(event, payload, context) {
+	function send(event, payload, context, action) {
 		const message = { event: event };
 		if (payload !== undefined) {
 			message.payload = payload;
@@ -90,12 +91,16 @@ function createConnection() {
 		if (context) {
 			message.context = context;
 		}
+		if (action) {
+			message.action = action;
+		}
 		return socket.send(JSON.stringify(message));
 	}
 
 	async function connect(port, registerEvent, uuid, timeoutMs) {
 		await socket.connect(port, "127.0.0.1", timeoutMs);
 		socket.send(JSON.stringify({ event: registerEvent, uuid: uuid }));
+		pluginUUID = uuid;
 		registered = true;
 	}
 
@@ -137,13 +142,13 @@ function createConnection() {
 			send("setSettings", settings, context);
 		},
 		getGlobalSettings: function () {
-			send("getGlobalSettings", {}, "");
+			send("getGlobalSettings", {}, pluginUUID);
 		},
 		setGlobalSettings: function (settings) {
-			send("setGlobalSettings", settings, "");
+			send("setGlobalSettings", settings, pluginUUID);
 		},
-		sendToPropertyInspector: function (context, payload) {
-			send("sendToPropertyInspector", payload, context);
+		sendToPropertyInspector: function (context, action, payload) {
+			send("sendToPropertyInspector", payload, context, action);
 		},
 		openUrl: function (url) {
 			send("openUrl", { url: url });

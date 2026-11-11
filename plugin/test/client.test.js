@@ -35,6 +35,33 @@ test("connecting publishes the server's services", async function () {
 	});
 });
 
+test("KSA class calls use their actual owning service", async function () {
+	await withServer(async function ({ client, server }) {
+		await client.connect();
+		assert.strictEqual(client.serviceFor("Vehicle").name, "KSA");
+		assert.strictEqual(client.memberProcedure("Vehicle", "get", "Name"), "Vehicle_get_Name");
+		assert.strictEqual(await client.call("Vehicle", "Vehicle_get_Name", [1]), server.state.vehicle.name);
+		assert.strictEqual(client.registry().enumerations.has("KSA.AutoPilotMode"), true);
+	}, { ksaService: true });
+});
+
+test("service discovery reports the server's actual error and closes the connection", async function () {
+	const servicesError = {
+		service: "KRPC",
+		name: "UnsupportedSceneException",
+		description: "Procedure not available in game scene 'None'"
+	};
+	await withServer(async function ({ client }) {
+		await assert.rejects(client.connect(), function (error) {
+			assert.ok(error instanceof RpcError);
+			assert.strictEqual(error.rpc, "UnsupportedSceneException");
+			assert.strictEqual(error.message, servicesError.description);
+			return true;
+		});
+		assert.strictEqual(client.isConnected(), false);
+	}, { servicesError: servicesError });
+});
+
 test("member names are resolved with the protocol's naming convention", async function () {
 	await withServer(async function ({ client }) {
 		await client.connect();
@@ -147,7 +174,7 @@ test("an enumeration argument can be sent as a number and read back", async func
 		const registry = client.registry();
 		const modeType = registry.enumerations.get("AutoPilot.AutoPilotMode");
 		const prograde = modeType.values.find(function (entry) {
-			return entry.name === "AUTO_PILOT_MODE_PROGRADE";
+			return entry.name === "Prograde";
 		});
 		await client.call("AutoPilot", "AutoPilot_set_Mode", [1, prograde.value]);
 		assert.strictEqual(await client.call("AutoPilot", "AutoPilot_get_Mode", [1]), prograde.value);

@@ -112,13 +112,23 @@ test("the engine key toggles and reports the new state", async function () {
 
 test("staging advances the sequence and the readout follows", async function () {
 	await withSession(async function ({ session, server }) {
-		const before = await session.poll(["sequenceNumber"]);
+		const before = await session.poll(["sequenceNumber", "sequenceDeltaV"]);
 		assert.strictEqual(before.values.sequenceNumber.value, 1);
+		assert.strictEqual(before.values.sequenceDeltaV.value, server.state.vehicle.sequence.deltaV);
 		await session.nextSequence();
 		const after = await session.poll(["sequenceNumber"]);
 		assert.strictEqual(after.values.sequenceNumber.value, 2);
 		assert.strictEqual(server.state.vehicle.sequence.number, 2);
 	});
+});
+
+test("the first auto-pilot enum value is selectable", async function () {
+	await withSession(async function ({ session, server }) {
+		const state = await session.toggleAutoPilot("AUTO_PILOT_MODE_ATTITUDE");
+		assert.strictEqual(state.mode, 0);
+		assert.strictEqual(server.state.vehicle.autopilot.mode, 0);
+		assert.strictEqual((await session.toggleAutoPilot("AUTO_PILOT_MODE_ATTITUDE")).engaged, false);
+	}, { ksaService: true });
 });
 
 test("toggles read and write the control flags", async function () {

@@ -53,7 +53,7 @@ function connectToStreamDeck(inPort, inUUID, inRegisterEvent) {
 		const payload = message.payload || {};
 		const entry = {
 			context: message.context,
-			action: payload.action,
+			action: message.action,
 			settings: payload.settings || {}
 		};
 		contexts.set(message.context, entry);
@@ -139,7 +139,7 @@ function connectToStreamDeck(inPort, inUUID, inRegisterEvent) {
 	deck.on("sendToPlugin", function (message) {
 		const payload = message.payload || {};
 		if (payload.command === "test") {
-			testConnection(message.context).catch(function (cause) {
+			testConnection(message.context, message.action).catch(function (cause) {
 				console.error("KSA Flight Deck: connection test failed", cause);
 			});
 		}
@@ -202,6 +202,9 @@ async function tick() {
 		nextDelay = settings.pollMs;
 		throttleOverride = null;
 	} catch (cause) {
+		if (!snapshot.message || snapshot.message !== cause.message) {
+			console.error("KSA Flight Deck: poll failed", cause);
+		}
 		snapshot = session.snapshot();
 		nextDelay = SLOW_POLL_MS;
 	}
@@ -279,6 +282,9 @@ function offlineLabel() {
 	if (!snapshot.at) {
 		// The first poll has not finished, so nothing is known yet.
 		return { value: "…", unit: "", tone: "idle" };
+	}
+	if (!snapshot.ok && snapshot.connected) {
+		return { value: "ERROR", unit: "", tone: "error" };
 	}
 	if (!snapshot.connected) {
 		return { value: "OFFLINE", unit: "", tone: "error" };
@@ -379,7 +385,8 @@ function describeEntry(entry) {
 			const engaged = valueFor(entry, "autoPilotEngaged");
 			const current = valueFor(entry, "autoPilotMode");
 			const on = Boolean(engaged && engaged.ok && engaged.value);
-			const holds = on && current && current.ok && current.formatted.value === modeLabel;
+			const holds = Boolean(on && current && current.ok && known &&
+				(current.enumName === known.rpcName || current.enumName === known.name));
 			return {
 				label: modeLabel,
 				value: on ? (holds ? "HOLD" : "OTHER") : "OFF",
@@ -427,6 +434,9 @@ function describeStatus() {
 	if (!snapshot.at) {
 		return { label: "kRPC", value: "…", tone: "idle" };
 	}
+	if (snapshot.message && snapshot.message.includes("game scene 'None'")) {
+		return { label: "kRPC", value: "NO SHIP", footer: "take control", tone: "warn" };
+	}
 	if (!snapshot.connected) {
 		return {
 			label: "kRPC",
@@ -434,6 +444,9 @@ function describeStatus() {
 			footer: footer,
 			tone: "error"
 		};
+	}
+	if (!snapshot.ok) {
+		return { label: "kRPC", value: "ERROR", footer: "check log", tone: "error" };
 	}
 	if (!snapshot.vehicle) {
 		return { label: "kRPC", value: "NO SHIP", footer: "connected", tone: "warn" };
@@ -447,15 +460,14 @@ function describeStatus() {
 }
 
 /** The inspector's "Test connection" button. */
-async function testConnection(context) {
+async function testConnection(context, action) {
+	const testClient = createClient({ host: settings.host, port: settings.port });
 	try {
-		client.close();
-		session.reset();
-		await client.connect();
-		const registry = client.registry();
+		await testClient.connect();
+		const registry = testClient.registry();
 		let detail = "protocol " + (registry ? "ok" : "unknown");
 		try {
-			const status = await client.getStatus();
+			const status = await testClient.getStatus();
 			if (status && status.version) {
 				detail = status.version + ", protocol " + status.protocol_version;
 			}
@@ -463,17 +475,19 @@ async function testConnection(context) {
 			detail = "connected";
 		}
 		const count = registry ? registry.services.size : 0;
-		deck.sendToPropertyInspector(context, {
+		deck.sendToPropertyInspector(context, action, {
 			command: "test",
 			ok: true,
-			message: "Connected to " + client.endpoint() + "\n" + detail + ", " + count + " services"
+			message: "Connected to " + testClient.endpoint() + "\n" + detail + ", " + count + " services"
 		});
 	} catch (cause) {
-		deck.sendToPropertyInspector(context, {
+		deck.sendToPropertyInspector(context, action, {
 			command: "test",
 			ok: false,
 			message: (cause && cause.message) || "Could not connect"
 		});
+	} finally {
+		testClient.close();
 	}
 	refreshSoon(0);
 }

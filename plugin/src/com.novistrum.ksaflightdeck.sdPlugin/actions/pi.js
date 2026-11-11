@@ -52,7 +52,7 @@
 		socket.onopen = function () {
 			socket.send(JSON.stringify({ event: registerEvent, uuid: uuid }));
 			send("getSettings");
-			send("getGlobalSettings", undefined, "");
+			send("getGlobalSettings");
 			notify(readyHandlers, { actionInfo: actionInfo });
 		};
 		socket.onmessage = function (message) {
@@ -109,10 +109,23 @@
 		},
 		setGlobalSettings: function (next) {
 			globalSettings = Object.assign({}, globalSettings, next);
-			send("setGlobalSettings", globalSettings, "");
+			send("setGlobalSettings", globalSettings);
 		},
 		sendToPlugin: function (payload) {
-			send("sendToPlugin", payload);
+			if (!actionInfo || !actionInfo.action) {
+				console.error("KSA Flight Deck: missing property inspector action");
+				return;
+			}
+			if (!socket || socket.readyState !== 1) {
+				console.error("KSA Flight Deck: property inspector is not connected");
+				return;
+			}
+			socket.send(JSON.stringify({
+				event: "sendToPlugin",
+				action: actionInfo.action,
+				context: context,
+				payload: payload
+			}));
 		}
 	};
 })();

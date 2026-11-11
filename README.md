@@ -44,6 +44,11 @@ plugin is a single Stream Deck plugin that speaks kRPC's own protocol.
 The **kRPC Status** key is the one to add first: its property inspector lets you set the
 address and port and press **Test connection**.
 
+If the test reports `Procedure not available in game scene 'None'`, kRPC accepted the
+connection but does not detect a controlled vehicle. Take control of a vehicle in KSA
+and try again. A visible vehicle alone does not necessarily mean it is controlled.
+If it still reports `None`, check the kRPC mod and game version compatibility.
+
 ## Using it
 
 - Keys poll as a group, four times a second, but only while at least one KSA key is

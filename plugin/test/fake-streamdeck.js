@@ -140,13 +140,16 @@ function createFakeStreamDeck() {
 		port: function () {
 			return port;
 		},
-		send: function (event, payload, context) {
+		send: function (event, payload, context, action) {
 			const message = { event: event };
 			if (payload !== undefined) {
 				message.payload = payload;
 			}
 			if (context) {
 				message.context = context;
+			}
+			if (action) {
+				message.action = action;
 			}
 			sockets.forEach(function (target) {
 				target.write(serverFrame(JSON.stringify(message)));
