@@ -95,10 +95,24 @@ test("encoder layouts are valid and referenced", function () {
 		assert.ok(exists(action.Encoder.layout), action.UUID + " layout exists");
 		const layout = JSON.parse(read(action.Encoder.layout));
 		assert.ok(Array.isArray(layout.items) && layout.items.length > 0, "layout has items");
+		const keys = new Set();
 		layout.items.forEach(function (item) {
 			assert.ok(item.key, "layout item has a key");
-			assert.strictEqual(item.type, "text", "only text items are used");
+			assert.ok(!keys.has(item.key), "layout keys are unique");
+			keys.add(item.key);
 			assert.strictEqual(item.rect.length, 4, "layout item has a rect");
+			const [x, y, width, height] = item.rect;
+			assert.ok(x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 200 && y + height <= 100,
+				"layout item fits the touch strip");
+		});
+		const panel = layout.items.find(function (item) { return item.key === "panel"; });
+		assert.ok(panel && panel.type === "pixmap", "panel is a pixmap");
+		assert.ok(exists(panel.value), "panel image exists");
+		assert.deepStrictEqual(panel.rect, [0, 0, 200, 100]);
+		["title", "value"].forEach(function (key) {
+			const text = layout.items.find(function (item) { return item.key === key; });
+			assert.ok(text && text.type === "text", key + " is text");
+			assert.ok(text.zOrder > panel.zOrder, key + " appears over the panel");
 		});
 	});
 });

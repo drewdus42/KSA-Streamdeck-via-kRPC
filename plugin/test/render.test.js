@@ -33,6 +33,9 @@ test("a wide value is shrunk until it fits inside the tile", function () {
 	assert.ok(wide.valueSize < narrow.valueSize, "a longer value uses a smaller font");
 	const pixels = render.textWidth(wide.value) * wide.valueSize;
 	assert.ok(pixels <= 130, "the value fits inside the tile: " + Math.round(pixels) + "px");
+	const longNumber = render.spec({ value: "1234567890123" });
+	assert.ok(render.textWidth(longNumber.value) * longNumber.valueSize <= 112,
+		"a long counter value fits within the display");
 	const footer = render.spec({ label: "Time to apoapsis" });
 	assert.ok(
 		render.textWidth(footer.label) * footer.labelSize <= 130,
@@ -67,7 +70,11 @@ test("the drawing shows the label, value, unit and footer", function () {
 	assert.ok(markup.indexOf(">84.0<") >= 0, "the value is drawn");
 	assert.ok(markup.indexOf(">km<") >= 0, "the unit is drawn");
 	assert.ok(markup.indexOf(">Kerbal Express<") >= 0, "the footer is drawn");
-	assert.ok(markup.indexOf("#38bdf8") >= 0, "the live tone is applied");
+	assert.ok(markup.indexOf("#202020") >= 0, "the neutral instrument display is applied");
+	assert.ok(markup.includes('height="136" rx="18"'), "the panel has rounded corners");
+	assert.ok(markup.includes('height="58" rx="6"'), "the inset display has rounded corners");
+	assert.ok(markup.indexOf("Consolas") >= 0, "numerical readouts use the counter font");
+	assert.ok(markup.includes('stroke-opacity=".08"'), "counter digits have subtle divisions");
 	assert.ok(markup.endsWith("</svg>"));
 });
 
@@ -82,7 +89,32 @@ test("the drawing escapes characters that would break the markup", function () {
 test("the badge is drawn when a readout is unavailable", function () {
 	const markup = render.svg(render.spec({ label: "Pressure", value: "—", badge: "?", tone: "warn" }));
 	assert.ok(markup.indexOf(">?<") >= 0);
-	assert.ok(markup.indexOf("#f59e0b") >= 0, "the warn tone is applied");
+	assert.ok(markup.indexOf("#e6df39") >= 0, "the warn tone is applied");
+	assert.ok(markup.includes('<rect x="105" y="19" width="18" height="18"'), "the badge stays in the header");
+});
+
+test("values are centered in the display and units stay below its border", function () {
+	const markup = render.svg(render.spec({ label: "Altitude", value: "24.7", unit: "km", tone: "live" }));
+	assert.match(markup, /<text x="72" y="74"[^>]*dominant-baseline="central"[^>]*>24\.7<\/text>/);
+	assert.match(markup, /<text x="72" y="123"[^>]*font-size="14"[^>]*>km<\/text>/);
+	const status = render.svg(render.spec({ label: "Engine", value: "ON", tone: "on" }));
+	assert.match(status, /<text x="72" y="71"[^>]*dominant-baseline="central"[^>]*>ON<\/text>/);
+	assert.ok(!status.includes("<circle"), "the panel has no decorative corner bolts");
+	const withFooter = render.svg(render.spec({ value: "1", unit: "km", footer: "available" }));
+	assert.match(withFooter, /<text x="16" y="123" text-anchor="start"[^>]*>km<\/text>/);
+	assert.match(withFooter, /<text x="128" y="123" text-anchor="end"[^>]*>available<\/text>/);
+});
+
+test("status colors remain distinct against the dark instrument panel", function () {
+	const faces = ["live", "on", "off", "warn", "error"].map(function (tone) {
+		return render.svg(render.spec({ label: "Engine", value: "ON", tone: tone }));
+	});
+	assert.ok(faces.every(function (face) { return face.includes('fill="#121212"'); }));
+	assert.ok(faces[1].includes('fill="#24e638"'));
+	assert.ok(faces[2].includes('fill="#363636"'));
+	assert.ok(faces[3].includes('fill="#e6df39"'));
+	assert.ok(faces[4].includes('fill="#cf2525"'));
+	assert.ok(!faces[1].includes('stroke-opacity=".08"'), "text buttons have no counter divisions");
 });
 
 test("the signature changes when anything visible changes", function () {

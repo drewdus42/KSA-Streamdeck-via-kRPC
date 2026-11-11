@@ -4,7 +4,7 @@
 	"Author": "Novistrum",
 	"Name": "KSA Flight Deck",
 	"Description": "Control Kitten Space Agency from a Stream Deck through the kRPC mod.",
-	"Version": "1.0.0.2",
+	"Version": "1.0.0.3",
 	"CodePath": "bin/plugin.js",
 	"Nodejs": {
 		"Version": "20"
@@ -87,7 +87,7 @@
 			"Controllers": ["Encoder"],
 			"Encoder": {
 				"layout": "layouts/throttle.json",
-				"StackColor": "#0ea5e9",
+				"StackColor": "#363636",
 				"TriggerDescription": {
 					"Rotate": "Turn: 1% per tick\nHold and turn: 5% per tick",
 					"Push": "Throttle to 0%",
@@ -105,7 +105,7 @@
 			"Controllers": ["Encoder"],
 			"Encoder": {
 				"layout": "layouts/warp.json",
-				"StackColor": "#a855f7",
+				"StackColor": "#363636",
 				"TriggerDescription": {
 					"Rotate": "Change the simulation speed",
 					"Push": "Pause or resume",

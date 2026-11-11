@@ -254,6 +254,29 @@ test("a dial press drives the throttle to zero and the touchscreen follows", asy
 	}
 });
 
+test("the time warp touchscreen follows pause and resume", async function () {
+	const session = await startSession();
+	try {
+		session.krpc.state.simSpeed = 0;
+		session.deck.send("willAppear", { settings: {} }, "ctx-warp", UUID + ".warp");
+		session.deck.send("didReceiveSettings", { settings: {} }, "ctx-warp");
+		const paused = await session.deck.waitFor(function (message) {
+			return message.event === "setFeedback" && message.context === "ctx-warp" &&
+				message.payload.value === "PAUSE";
+		}, 6000);
+		assert.strictEqual(paused.payload.title, "TIME WARP");
+
+		session.deck.send("dialPress", { pressed: true }, "ctx-warp");
+		await session.deck.waitFor(function (message) {
+			return message.event === "setFeedback" && message.context === "ctx-warp" &&
+				message.payload.value === "1x";
+		}, 6000);
+		assert.strictEqual(session.krpc.state.simSpeed, 1);
+	} finally {
+		await session.stop();
+	}
+});
+
 test("a key press while the game is away shows a warning, not a crash", async function () {
 	const session = await startSession();
 	try {

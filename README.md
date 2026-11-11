@@ -7,7 +7,8 @@ Control **Kitten Space Agency** and see live telemetry on your Stream Deck using
 
 - Live telemetry, including altitude, speed, orbit and propellant.
 - Keys for staging, engines, auto-pilot and control toggles.
-- Stream Deck + dials for throttle and time warp.
+- Stream Deck + dials for throttle and time warp, with matching touchscreen panels.
+- KSA-style instrument panels with green, yellow and red status indicators.
 
 ## Requirements
 

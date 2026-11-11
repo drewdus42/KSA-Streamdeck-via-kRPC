@@ -109,7 +109,7 @@ function Draw-Autopilot($graphics, [string]$accent) {
 }
 
 function Draw-Toggle($graphics, [string]$accent) {
-    $track = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml("#334155"))
+    $track = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml("#4a4a4a"))
     $path = New-Object System.Drawing.Drawing2D.GraphicsPath
     $path.AddArc(74, 104, 80, 80, 90, 180)
     $path.AddArc(148, 104, 80, 80, 270, 180)
@@ -125,7 +125,7 @@ function Draw-Toggle($graphics, [string]$accent) {
 
 function Draw-Throttle($graphics, [string]$accent) {
     $brush = Get-Brush $accent
-    $track = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml("#334155"))
+    $track = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml("#4a4a4a"))
     $graphics.FillRectangle($track, 128, 56, 32, 176)
     $graphics.FillRectangle($brush, 128, 118, 32, 114)
     $track.Dispose()
@@ -162,15 +162,15 @@ function Save-Scaled($bitmap, [string]$name, [int]$size) {
 }
 
 $icons = @(
-    @{ Name = "plugin";     Background = "#0f172a"; Accent = "#38bdf8"; Draw = "Draw-Status" },
-    @{ Name = "status";     Background = "#0f172a"; Accent = "#38bdf8"; Draw = "Draw-Status" },
-    @{ Name = "readout";    Background = "#0f172a"; Accent = "#22d3ee"; Draw = "Draw-Readout" },
-    @{ Name = "sequence";   Background = "#0f172a"; Accent = "#f59e0b"; Draw = "Draw-Sequence" },
-    @{ Name = "engine";     Background = "#0f172a"; Accent = "#22c55e"; Draw = "Draw-Engine" },
-    @{ Name = "autopilot";  Background = "#0f172a"; Accent = "#a855f7"; Draw = "Draw-Autopilot" },
-    @{ Name = "toggle";     Background = "#0f172a"; Accent = "#0ea5e9"; Draw = "Draw-Toggle" },
-    @{ Name = "throttle";   Background = "#0f172a"; Accent = "#14b8a6"; Draw = "Draw-Throttle" },
-    @{ Name = "warp";       Background = "#0f172a"; Accent = "#c084fc"; Draw = "Draw-Warp" }
+    @{ Name = "plugin";     Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Status" },
+    @{ Name = "status";     Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Status" },
+    @{ Name = "readout";    Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Readout" },
+    @{ Name = "sequence";   Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Sequence" },
+    @{ Name = "engine";     Background = "#161616"; Accent = "#24e638"; Draw = "Draw-Engine" },
+    @{ Name = "autopilot";  Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Autopilot" },
+    @{ Name = "toggle";     Background = "#161616"; Accent = "#24e638"; Draw = "Draw-Toggle" },
+    @{ Name = "throttle";   Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Throttle" },
+    @{ Name = "warp";       Background = "#161616"; Accent = "#e6e6e3"; Draw = "Draw-Warp" }
 )
 
 foreach ($icon in $icons) {

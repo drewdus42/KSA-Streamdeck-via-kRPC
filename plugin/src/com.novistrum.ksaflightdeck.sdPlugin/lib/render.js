@@ -11,16 +11,17 @@
 
 const SIZE = 144;
 const FONT = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const COUNTER_FONT = "Consolas, 'Courier New', monospace";
 /** The width text may use inside a tile, in pixels. */
-const TEXT_WIDTH = 124;
+const TEXT_WIDTH = 112;
 
 const TONES = {
-	idle: { background: "#1e293b", accent: "#64748b", text: "#e2e8f0" },
-	live: { background: "#0f172a", accent: "#38bdf8", text: "#f8fafc" },
-	on: { background: "#052e16", accent: "#22c55e", text: "#f0fdf4" },
-	off: { background: "#1f2937", accent: "#475569", text: "#cbd5e1" },
-	warn: { background: "#3b1d02", accent: "#f59e0b", text: "#fffbeb" },
-	error: { background: "#450a0a", accent: "#ef4444", text: "#fef2f2" }
+	idle: { background: "#252525", accent: "#a5a5a5", text: "#ededeb" },
+	live: { background: "#202020", accent: "#d8d8d5", text: "#ffffff" },
+	on: { background: "#24e638", accent: "#24e638", text: "#101610" },
+	off: { background: "#363636", accent: "#a5a5a5", text: "#f0f0ee" },
+	warn: { background: "#e6df39", accent: "#e6df39", text: "#171710" },
+	error: { background: "#cf2525", accent: "#f03d3d", text: "#ffffff" }
 };
 
 /** A rough width for a string, in multiples of the font size. */
@@ -32,7 +33,7 @@ function textWidth(text) {
 		if (character === " ") {
 			total += 0.3;
 		} else if ("0123456789".indexOf(character) >= 0) {
-			total += 0.58;
+			total += 0.62;
 		} else if (".:,°%-+".indexOf(character) >= 0) {
 			total += 0.34;
 		} else if (character !== character.toLowerCase() && character === character.toUpperCase()) {
@@ -65,7 +66,7 @@ function valueSize(text) {
 	} else {
 		preferred = 26;
 	}
-	return fitSize(text, preferred, 18);
+	return fitSize(text, preferred, 10);
 }
 
 function escapeXml(text) {
@@ -106,8 +107,9 @@ function textElement(options) {
 	return (
 		'<text x="' + options.x + '" y="' + options.y + '" text-anchor="' +
 		(options.anchor || "middle") + '"' +
-		' font-family="' + FONT + '" font-size="' + options.size + '"' +
+		' font-family="' + (options.font || FONT) + '" font-size="' + options.size + '"' +
 		' font-weight="' + (options.weight || 600) + '"' +
+		(options.baseline ? ' dominant-baseline="' + options.baseline + '"' : "") +
 		' fill="' + options.fill + '">' + escapeXml(options.text) + "</text>"
 	);
 }
@@ -122,18 +124,34 @@ function svg(description) {
 	);
 	parts.push(
 		'<rect x="4" y="4" width="' + (SIZE - 8) + '" height="' + (SIZE - 8) +
-			'" rx="16" fill="' + tone.background + '" stroke="' + tone.accent + '" stroke-width="3"/>'
+			'" rx="18" fill="#121212" stroke="#484848" stroke-width="3"/>'
 	);
+	parts.push('<path d="M12 39H132" stroke="#424242" stroke-width="1"/>');
+	parts.push(
+		'<rect x="12" y="45" width="120" height="58" rx="6" fill="' + tone.background +
+			'" stroke="#050505" stroke-width="3"/>'
+	);
+	parts.push('<path d="M15 48H129" stroke="#ffffff" stroke-opacity=".14" stroke-width="1"/>');
+	const numeric = /^[+\-]?\d/.test(description.value);
+	if (numeric) {
+		const cellWidth = description.valueSize * 0.6;
+		const left = (SIZE - cellWidth * description.value.length) / 2;
+		for (let i = 1; i < description.value.length; i++) {
+			const x = Math.round((left + cellWidth * i) * 10) / 10;
+			parts.push('<path d="M' + x + ' 48V100" stroke="#ffffff" stroke-opacity=".08"/>');
+		}
+	}
 
 	if (description.badge) {
-		parts.push('<circle cx="' + (SIZE - 26) + '" cy="26" r="15" fill="' + tone.accent + '"/>');
+		parts.push('<rect x="105" y="19" width="18" height="18" rx="2" fill="' + tone.accent + '"/>');
 		parts.push(
 			textElement({
-				x: SIZE - 26,
-				y: 31,
-				size: 15,
+				x: 114,
+				y: 28,
+				size: 13,
+				baseline: "central",
 				weight: 700,
-				fill: tone.background,
+				fill: "#121212",
 				text: description.badge
 			})
 		);
@@ -147,19 +165,20 @@ function svg(description) {
 				size: description.labelSize || 17,
 				anchor: description.labelAnchor || "middle",
 				weight: 600,
-				fill: tone.accent,
+				fill: "#e6e6e3",
 				text: description.label
 			})
 		);
 	}
 
-	const centre = description.unit ? 74 : 80;
 	parts.push(
 		textElement({
 			x: SIZE / 2,
-			y: Math.round(centre + description.valueSize * 0.35),
+			y: numeric ? 74 : 74 - Math.round(description.valueSize * 0.05),
 			size: description.valueSize,
-			weight: 700,
+			weight: 600,
+			font: numeric ? COUNTER_FONT : FONT,
+			baseline: "central",
 			fill: tone.text,
 			text: description.value
 		})
@@ -168,11 +187,12 @@ function svg(description) {
 	if (description.unit) {
 		parts.push(
 			textElement({
-				x: SIZE / 2,
-				y: Math.round(centre + description.valueSize * 0.35 + 26),
-				size: 19,
+				x: description.footer ? 16 : SIZE / 2,
+				y: 123,
+				anchor: description.footer ? "start" : "middle",
+				size: fitSize(description.unit, 14, 8, description.footer ? 45 : TEXT_WIDTH),
 				weight: 600,
-				fill: tone.accent,
+				fill: "#e6e6e3",
 				text: description.unit
 			})
 		);
@@ -181,11 +201,12 @@ function svg(description) {
 	if (description.footer) {
 		parts.push(
 			textElement({
-				x: SIZE / 2,
-				y: SIZE - 16,
-				size: 15,
+				x: description.unit ? 128 : SIZE / 2,
+				y: 123,
+				anchor: description.unit ? "end" : "middle",
+				size: fitSize(description.footer, 14, 8, description.unit ? 65 : TEXT_WIDTH),
 				weight: 500,
-				fill: tone.accent,
+				fill: "#c4c4c0",
 				text: description.footer
 			})
 		);
